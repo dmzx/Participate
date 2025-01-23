@@ -1,0 +1,2 @@
+parameters:
+    dmzx.participate.tables.participate: '%core.table_prefix%participate'

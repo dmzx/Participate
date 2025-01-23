@@ -1,0 +1,15 @@
+imports:
+    - { resource: tables.yml }
+
+services:
+    _defaults:
+        autowire: true
+        bind:
+            $tables: '%tables%'
+    dmzx.participate.listener:
+        class: 'dmzx\participate\event\listener'
+        tags: [{ name: 'event.listener' }]
+    dmzx.participate.controller.acp:
+        class: 'dmzx\participate\controller\acp_controller'
+    dmzx.participate.controller:
+        class: 'dmzx\participate\controller\controller'

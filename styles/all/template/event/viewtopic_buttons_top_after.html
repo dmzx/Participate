@@ -1,0 +1,4 @@
+{% if S_PARTICIPATE %}
+	<a id="participate_button" class="{{ DMZX_PARTICIPATE_STATUS_CLASS }} button icon-button" title="{{ DMZX_PARTICIPATE_TXT }}" href="{{ DMZX_PARTICIPATE_STATUS_URL }}" data-ajax="participate" data-refresh="true">{{ DMZX_PARTICIPATE_BUTTON_TXT }}</a>
+	{% INCLUDEJS '@dmzx_participate/js/participate.js' %}
+{% endif %}

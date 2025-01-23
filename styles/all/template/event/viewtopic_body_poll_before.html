@@ -1,0 +1,12 @@
+{% if S_PARTICIPATE %}
+<div id="participate_bar" class="participantsbar">
+	{% if loops.participants|length %}
+		{{ DMZX_PARTICIPATE_INFO_URL }} {{ lang('PARTICIPANTS') }}{{ lang('COLON') }}
+		{% for participants in loops.participants %}
+		<span class="{{ participants.CLASS }}" style="color: #{{ participants.USERCOLOUR }};">{{ participants.USERNAME }}</span>{% if not participants.S_LAST_ROW %}, {% endif %}
+		{% endfor %}
+	{% else %}
+	{{ lang('NO_PARTICIPANTS') }}
+	{% endif %}
+</div>
+{% endif %}
