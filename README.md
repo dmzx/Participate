@@ -1,6 +1,6 @@
 # Participate Extension
 
-[![Build Status](https://travis-ci.org/dmzx/Participate.svg?branch=master)](https://travis-ci.org/dmzx/Participate)
+[![Build Status](https://github.com/dmzx/Participate/workflows/Tests/badge.svg)](https://github.com/phpbb-extensions/dmzx/Participate)
 
 ## Install
 1. Download the latest release.
