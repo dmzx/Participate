@@ -1,6 +1,6 @@
 # Participate Extension
 
-[![Build Status](https://github.com/dmzx/Participate/workflows/Tests/badge.svg)](https://github.com/phpbb-extensions/dmzx/Participate)
+[![Build Status](https://github.com/dmzx/Participate/workflows/Tests/badge.svg)](https://github.com/dmzx/Participate)
 
 ## Install
 1. Download the latest release.
