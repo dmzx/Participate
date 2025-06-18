@@ -19,6 +19,7 @@ use phpbb\template\template;
 use phpbb\user;
 use phpbb\auth\auth;
 use phpbb\extension\manager;
+use phpbb\language\language;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class listener implements EventSubscriberInterface
@@ -32,6 +33,7 @@ class listener implements EventSubscriberInterface
 	protected $user;
 	protected $auth;
 	protected $extension_manager;
+	protected $language;
 	protected $tables;
 	protected $participate_include = false;
 
@@ -45,6 +47,7 @@ class listener implements EventSubscriberInterface
 		user $user,
 		auth $auth,
 		manager $extension_manager,
+		language $language,
 		$tables
 	)
 	{
@@ -57,9 +60,10 @@ class listener implements EventSubscriberInterface
 		$this->user						= $user;
 		$this->auth						= $auth;
 		$this->extension_manager		= $extension_manager;
+		$this->language					= $language;
 		$this->tables					= $tables;
 
-		$this->user->add_lang_ext('dmzx/participate', 'participate');
+		$this->language->add_lang('participate', 'dmzx/participate');
 	}
 
 	static public function getSubscribedEvents()
@@ -89,14 +93,15 @@ class listener implements EventSubscriberInterface
 						AND topic_id = ' . (int) $data['topic_id'];
 				$result = $this->db->sql_query($sql);
 				$row = $this->db->sql_fetchrow($result);
+				$this->db->sql_freeresult($result);
 
 				$this->template->assign_vars([
 					'S_PARTICIPATE'					=> ($this->auth->acl_get('f_reply', $data['forum_id']) && $post_id == $data['topic_first_post_id']),
 					'DMZX_PARTICIPATE_STATUS_CLASS'	=> (!$row) ? 'btn-grey' : (($row['active']) ? 'btn-green' : 'btn-red'),
-					'DMZX_PARTICIPATE_TXT' 			=> (!$row) ? $this->user->lang['STATUS_TXT_NOT_PARTICIPATE'] : (($row['active']) ? $this->user->lang['STATUS_TXT_PARTICIPATE'] : $this->user->lang['STATUS_TXT_CANCEL_PARTICIPATE']),
-					'DMZX_PARTICIPATE_BUTTON_TXT' 	=> (!$row) ? $this->user->lang['STATUS_TITLE_NOT_PARTICIPATE'] : (($row['active']) ? $this->user->lang['STATUS_TITLE_PARTICIPATE'] : $this->user->lang['STATUS_TITLE_CANCEL_PARTICIPATE']),
+					'DMZX_PARTICIPATE_TXT' 			=> (!$row) ? $this->language->lang('STATUS_TXT_NOT_PARTICIPATE') : (($row['active']) ? $this->language->lang('STATUS_TXT_PARTICIPATE') : $this->language->lang('STATUS_TXT_CANCEL_PARTICIPATE')),
+					'DMZX_PARTICIPATE_BUTTON_TXT' 	=> (!$row) ? $this->language->lang('STATUS_TITLE_NOT_PARTICIPATE') : (($row['active']) ? $this->language->lang('STATUS_TITLE_PARTICIPATE') : $this->language->lang('STATUS_TITLE_CANCEL_PARTICIPATE')),
 					'DMZX_PARTICIPATE_STATUS_URL' 	=> $this->controller_helper->route('dmzx_participate_controller', ['name' => 'index.html', 't' => $data['topic_id']]),
-					'DMZX_PARTICIPATE_INFO_URL' 	=> '<i class="fa fa-info-circle" title="' . $this->user->lang['PARTICIPANTS'] . '"></i> ',
+					'DMZX_PARTICIPATE_INFO_URL' 	=> '<i class="fa fa-info-circle" title="' . $this->language->lang('PARTICIPANTS') . '"></i> ',
 				]);
 
 				$sql = 'SELECT u.username, u.user_colour, d.user_id, d.active

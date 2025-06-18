@@ -1,7 +1,5 @@
 # Participate Extension
 
-[![Build Status](https://github.com/dmzx/Participate/workflows/Tests/badge.svg)](https://github.com/dmzx/Participate)
-
 ## Install
 1. Download the latest release.
 2. In the `ext` directory of your phpBB board, create a new directory named `dmzx` (if it does not already exist).

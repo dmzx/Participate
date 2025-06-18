@@ -34,8 +34,6 @@ class install_participate extends \phpbb\db\migration\migration
 	{
 		return [
 			['config.add', ['participate_enable', 0]],
-			['config.add', ['participate_version', '1.0.0']],
-
 			['config_text.add', ['participate_forum_ids', '']],
 
 			['module.add', [

@@ -25,13 +25,10 @@ class main_module
 	 */
 	public function main($id, $mode)
 	{
-		global $phpbb_container, $request;
+		global $phpbb_container;
 
 		/** @var \dmzx\participate\controller\acp_controller $acp_controller */
 		$acp_controller = $phpbb_container->get('dmzx.participate.controller.acp');
-
-		// Requests
-		$action = $request->variable('action', '');
 
 		/** @var \phpbb\language\language $language */
 		$language = $phpbb_container->get('language');

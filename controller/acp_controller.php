@@ -151,11 +151,10 @@ class acp_controller
 		// Set output variables for display in the template
 		$this->template->assign_vars([
 			'S_ERROR'						=> $s_errors,
-			'ERROR_MSG'					=> $s_errors ? implode('<br>', $errors) : '',
+			'ERROR_MSG'						=> $s_errors ? implode('<br>', $errors) : '',
 			'PARTICIPATE_ENABLE'			=> $this->config['participate_enable'],
-			'PARTICIPATE_VERSION'			=> $this->config['participate_version'],
 			'PARTICIPATE_FORUM_INCLUDED'	=> $this->forum_select($included_forums),
-			'U_ACTION'					 => $this->u_action,
+			'U_ACTION'					 	=> $this->u_action,
 		]);
 	}
 

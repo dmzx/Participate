@@ -14,15 +14,15 @@ use phpbb\db\driver\driver_interface;
 use phpbb\template\template;
 use phpbb\user;
 use phpbb\request\request;
-use phpbb\controller\helper;
+use phpbb\language\language;
 
 class controller
 {
 	protected $db;
 	protected $template;
 	protected $user;
-	protected $helper;
 	protected $request;
+	protected $language;
 	protected $tables;
 
 	public function __construct(
@@ -30,7 +30,7 @@ class controller
 		template $template,
 		user $user,
 		request $request,
-		helper $helper,
+		language $language,
 		$tables
 	)
 	{
@@ -38,71 +38,77 @@ class controller
 		$this->template		= $template;
 		$this->user			= $user;
 		$this->request		= $request;
-		$this->helper		= $helper;
+		$this->language		= $language;
 		$this->tables		= $tables;
 	}
 
 	public function handle($name)
 	{
-		switch ($name)
+		$topicid = $this->request->variable('t', 0);
+
+		if ($topicid)
 		{
-			default:
-				$topicid = $this->request->variable('t', 0);
+			$this->language->add_lang('participate', 'dmzx/participate');
 
-				if ($topicid)
-				{
-					$this->user->add_lang_ext('dmzx/participate', 'participate');
+			$sql = 'SELECT user_id, active FROM ' . $this->tables['participate'] . ' WHERE topic_id = ' . (int) $topicid . ' AND user_id = ' . (int) $this->user->data['user_id'];
+			$result = $this->db->sql_query($sql);
+			$row = $this->db->sql_fetchrow($result);
+			$this->db->sql_freeresult($result);
 
-					$sql = 'SELECT user_id, active FROM ' . $this->tables['participate'] . ' WHERE topic_id = ' . (int) $topicid . ' AND user_id = ' . (int) $this->user->data['user_id'];
-					$result = $this->db->sql_query($sql);
-					$row = $this->db->sql_fetchrow($result);
+			if ($row === false || !isset($row['user_id']))
+			{
+				// No row found, insert a new one
+				$sql_ary = [
+					'user_id'	=> (int) $this->user->data['user_id'],
+					'topic_id'	=> (int) $topicid,
+					'active'	=> 1,
+					'post_time' => time(),
+				];
+				$sql = 'INSERT INTO ' . $this->tables['participate'] . ' ' . $this->db->sql_build_array('INSERT', $sql_ary);
+				$row['active'] = 1;
+			}
+			else
+			{
+				// Row exists, update it
+				$sql_ary = [
+					'active'	=> (int)!$row['active'],
+					'post_time' => time(),
+				];
+				$sql = 'UPDATE ' . $this->tables['participate'] . '
+						SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . '
+						WHERE topic_id = ' . (int)$topicid . ' AND user_id = ' . (int) $this->user->data['user_id'];
+				$row['active'] = !$row['active'];
+			}
+			$this->db->sql_query($sql);
 
-					if ($row === false || !isset($row['user_id']))
-					{
-						// No row found, insert a new one
-						$sql = 'INSERT INTO ' . $this->tables['participate'] . ' (user_id, topic_id, active, post_time)
-								VALUES (' . (int) $this->user->data['user_id'] . ', ' . (int) $topicid . ', 1, ' . time() . ')';
-						$row['active'] = 1;
-					}
-					else
-					{
-						// Row exists, update it
-						$sql = 'UPDATE ' . $this->tables['participate'] . '
-								SET active = ' . (int)!$row['active'] . ', post_time = ' . time() . '
-								WHERE topic_id = ' . (int)$topicid . ' AND user_id = ' . (int) $this->user->data['user_id'];
-						$row['active'] = !$row['active'];
-					}
-					$this->db->sql_query($sql);
+			$participants = '';
 
-					$participants = '';
+			$sql = 'SELECT u.username, u.user_colour, d.user_id, d.active
+					FROM ' . $this->tables['participate'] . ' AS d
+					LEFT JOIN ' . USERS_TABLE . ' AS u ON (d.user_id = u.user_id)
+					WHERE d.topic_id = ' . (int) $topicid . '
+					ORDER BY d.active DESC, d.post_time ASC';
+			$result = $this->db->sql_query($sql);
 
-					$sql = 'SELECT u.username, u.user_colour, d.user_id, d.active
-							FROM ' . $this->tables['participate'] . ' AS d
-							LEFT JOIN ' . USERS_TABLE . ' AS u ON (d.user_id = u.user_id)
-							WHERE d.topic_id = ' . (int) $topicid . '
-							ORDER BY d.active DESC, d.post_time ASC';
-					$result = $this->db->sql_query($sql);
+			while ($row1 = $this->db->sql_fetchrow($result))
+			{
+				$participants .= (($participants == '') ? $this->language->lang('PARTICIPANTS') . $this->language->lang('COLON') . ' ': ', ') . '<span class="' . (($row1['active']) ? 'btn-black' : 'btn-grey strikethrough') . '" style="color: #' . $row1['user_colour'] . ';">' . $row1['username'] . '</span>';
+			}
+			$this->db->sql_freeresult($result);
 
-					while ($row1 = $this->db->sql_fetchrow($result))
-					{
-						$participants .= (($participants == '') ? $this->user->lang['PARTICIPANTS'] . $this->user->lang['COLON'] . ' ': ', ') . '<span class="' . (($row1['active']) ? 'btn-black' : 'btn-grey strikethrough') . '" style="color: #' . $row1['user_colour'] . ';">' . $row1['username'] . '</span>';
-					}
+			$info_url = '<i class="fa fa-info-circle" title="' . $this->language->lang('PARTICIPANTS') . '"></i> ';
 
-					$info_url = '<i class="fa fa-info-circle" title="' . $this->user->lang['PARTICIPANTS'] . '"></i> ';
-
-					if ($this->request->is_ajax())
-					{
-						$json_response = new \phpbb\json_response();
-						$json_response->send([
-							'success'							=> true,
-							'DMZX_PARTICIPATE_STATUS_CLASS'		=> ($row['active']) ? 'btn-green' : 'btn-red',
-							'DMZX_PARTICIPATE_TXT'				=> ($row['active']) ? $this->user->lang['STATUS_TXT_PARTICIPATE'] : $this->user->lang['STATUS_TXT_CANCEL_PARTICIPATE'],
-							'DMZX_PARTICIPATE_BUTTON_TXT'		=> ($row['active']) ? $this->user->lang['STATUS_TITLE_PARTICIPATE'] : $this->user->lang['STATUS_TITLE_CANCEL_PARTICIPATE'],
-							'PARTICIPANTSBAR'					=> $info_url . $participants
-						]);
-					}
-				}
-			break;
+			if ($this->request->is_ajax())
+			{
+				$json_response = new \phpbb\json_response();
+				$json_response->send([
+					'success'							=> true,
+					'DMZX_PARTICIPATE_STATUS_CLASS'		=> ($row['active']) ? 'btn-green' : 'btn-red',
+					'DMZX_PARTICIPATE_TXT'				=> ($row['active']) ? $this->language->lang('STATUS_TXT_PARTICIPATE') : $this->language->lang('STATUS_TXT_CANCEL_PARTICIPATE'),
+					'DMZX_PARTICIPATE_BUTTON_TXT'		=> ($row['active']) ? $this->language->lang('STATUS_TITLE_PARTICIPATE') : $this->language->lang('STATUS_TITLE_CANCEL_PARTICIPATE'),
+					'PARTICIPANTSBAR'					=> $info_url . $participants
+				]);
+			}
 		}
 	}
 }
