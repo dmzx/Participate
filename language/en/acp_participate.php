@@ -44,8 +44,6 @@ $lang = array_merge($lang, [
 	'DMZX_ACP_PARTICIPATE_VERSION'					=> 'Version',
 	'DMZX_ACP_RESET_TABLE'							=> 'Reset Participate Table',
 	'DMZX_ACP_RESET_TABLE_EXPLAIN'					=> 'This will delete all data from the participate table. Use with caution!',
-	'DMZX_ACP_CONFIRM_RESET_REQUIRED'					=> 'You must confirm that you want to reset the table.',
-	'DMZX_ACP_CONFIRM_RESET'			 			=> 'I understand the consequences and want to reset the table.',
 	'DMZX_ACP_ARE_YOU_SURE'							=> 'Are you sure you want to reset the participate table? This action cannot be undone.',
 	'DMZX_ACP_PARTICIPATE_TABLE_RESET_SUCCESS' 		=> 'The participate table has been successfully reset.',
 ]);

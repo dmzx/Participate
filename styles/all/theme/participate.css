@@ -14,12 +14,14 @@
 	color: #000;
 }
 
-.strikethrough {
-	text-decoration: line-through; 
+.strikethrough,
+.strikethrough a {
+	text-decoration: line-through;
 }
 
 .participantsbar {
-	clear:both color: #105289;
+	clear:both;
+	color: #105289;
 	display:inline-block;
 }
 

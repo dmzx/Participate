@@ -2,7 +2,7 @@
 
 <h1>{{ lang('DMZX_ACP_PARTICIPATE_TITLE') }}</h1>
 
-<p><img src="https://img.shields.io/badge/version-1.0.0-green.svg?style=plastic" /></p>
+<p>{{ lang('DMZX_ACP_PARTICIPATE_VERSION') ~ lang('COLON') }} {{ PARTICIPATE_VERSION }}</p>
 
 {% if S_ERROR %}
 	<div class="errorbox">
@@ -11,19 +11,19 @@
 	</div>
 {% endif %}
 
-<form id="dmzx_participate_acp" name="dmzx_participate_acp" method="post" action="{{ U_ACTION }}">
+<form id="dmzx_participate_settings" method="post" action="{{ U_ACTION }}">
 	<fieldset>
 		<legend>{{ lang('SETTINGS') }}</legend>
 		<dl>
-			<dt><label for="participate_enable">{{ lang('DMZX_ACP_PARTICIPATE_ENABLE') ~ lang('COLON') }}</label><br><span>{{ lang('DMZX_ACP_PARTICIPATE_ENABLE_EXPLAIN') }}</span></dt>
+			<dt><label for="participate_enable_yes">{{ lang('DMZX_ACP_PARTICIPATE_ENABLE') ~ lang('COLON') }}</label><br><span>{{ lang('DMZX_ACP_PARTICIPATE_ENABLE_EXPLAIN') }}</span></dt>
 			<dd>
-				<label><input type="radio" class="radio" name="participate_enable" value="1"{% if PARTICIPATE_ENABLE %} id="participate_enable" checked="checked"{% endif %} /> {{ lang('YES') }}</label>
-				<label><input type="radio" class="radio" name="participate_enable" value="0"{% if not PARTICIPATE_ENABLE %} id="participate_enable" checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+				<label for="participate_enable_yes"><input type="radio" class="radio" id="participate_enable_yes" name="participate_enable" value="1"{% if PARTICIPATE_ENABLE %} checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label for="participate_enable_no"><input type="radio" class="radio" id="participate_enable_no" name="participate_enable" value="0"{% if not PARTICIPATE_ENABLE %} checked="checked"{% endif %} /> {{ lang('NO') }}</label>
 			</dd>
 		</dl>
 
 		<dl>
-			<dt><label>{{ lang('DMZX_ACP_PARTICIPATE_FORUM_INCLUDED') ~ lang('COLON') }}</label><br><span>{{ lang('DMZX_ACP_PARTICIPATE_FORUM_INCLUDED_EXPLAIN') }}</span></dt>
+			<dt><label for="participate_forum_ids">{{ lang('DMZX_ACP_PARTICIPATE_FORUM_INCLUDED') ~ lang('COLON') }}</label><br><span>{{ lang('DMZX_ACP_PARTICIPATE_FORUM_INCLUDED_EXPLAIN') }}</span></dt>
 			<dd>{{ PARTICIPATE_FORUM_INCLUDED }}</dd>
 		</dl>
 	</fieldset>
@@ -33,17 +33,11 @@
 	</fieldset>
 </form>
 
-<form id="dmzx_participate_acp" method="post" action="{{ U_ACTION }}">
+<form id="dmzx_participate_reset" method="post" action="{{ U_ACTION }}">
 	<fieldset>
 		<legend>{{ lang('DMZX_ACP_RESET_TABLE') }}</legend>
 		<p>{{ lang('DMZX_ACP_RESET_TABLE_EXPLAIN') }}</p>
-
-		<label for="confirm_reset">
-			<input type="checkbox" id="confirm_reset" name="confirm_reset" value="1" />
-			{{ lang('DMZX_ACP_CONFIRM_RESET') }}
-		</label>
-
-		<input type="submit" name="reset" value="{{ lang('RESET') }}" class="button2" onclick="return confirm('{{ lang('DMZX_ACP_ARE_YOU_SURE') }}');" />
+		<input type="submit" id="reset" name="reset" value="{{ lang('RESET') }}" class="button2" />
 		{{ S_FORM_TOKEN }}
 	</fieldset>
 </form>

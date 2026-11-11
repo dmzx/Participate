@@ -1,5 +1,4 @@
 dmzx_participate_controller:
-    path: '/participate/{name}'
-    defaults: { _controller: 'dmzx.participate.controller:handle', var: '' }
-    requirements:
-        var: ".*"
+    path: '/participate'
+    methods: ['GET']
+    defaults: { _controller: 'dmzx.participate.controller:handle' }

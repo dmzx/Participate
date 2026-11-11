@@ -10,9 +10,8 @@
 
 namespace dmzx\participate\event;
 
+use dmzx\participate\core\settings;
 use phpbb\db\driver\driver_interface;
-use phpbb\config\config;
-use phpbb\config\db_text;
 use phpbb\controller\helper;
 use phpbb\request\request;
 use phpbb\template\template;
@@ -25,8 +24,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class listener implements EventSubscriberInterface
 {
 	protected $db;
-	protected $config;
-	protected $config_text;
+	protected $settings;
 	protected $controller_helper;
 	protected $request;
 	protected $template;
@@ -35,12 +33,10 @@ class listener implements EventSubscriberInterface
 	protected $extension_manager;
 	protected $language;
 	protected $tables;
-	protected $participate_include = false;
 
 	public function __construct(
 		driver_interface $db,
-		config $config,
-		db_text $config_text,
+		settings $settings,
 		helper $controller_helper,
 		request $request,
 		template $template,
@@ -52,8 +48,7 @@ class listener implements EventSubscriberInterface
 	)
 	{
 		$this->db						= $db;
-		$this->config					= $config;
-		$this->config_text 				= $config_text;
+		$this->settings					= $settings;
 		$this->controller_helper		= $controller_helper;
 		$this->request					= $request;
 		$this->template					= $template;
@@ -75,20 +70,14 @@ class listener implements EventSubscriberInterface
 
 	public function viewtopic_modify_post_data($event)
 	{
-		if ($this->config['participate_enable'])
+		if ($this->settings->is_enabled())
 		{
-			$post_id 	= $event['post_id'];
-			$data 		= $event['topic_data'];
+			$data = $event['topic_data'];
 
-			if ($this->is_forum_included($data['forum_id']) == true)
-			{
-				$this->participate_include = true;
-			}
-
-			if ($this->participate_include && $post_id = $data['topic_first_post_id'])
+			if ($this->settings->is_forum_included($data['forum_id']))
 			{
 				$sql = 'SELECT active
-						FROM ' . $this->tables['participate'] . '
+						FROM ' . $this->tables . '
 						WHERE user_id = ' . (int) $this->user->data['user_id'] . '
 						AND topic_id = ' . (int) $data['topic_id'];
 				$result = $this->db->sql_query($sql);
@@ -96,16 +85,16 @@ class listener implements EventSubscriberInterface
 				$this->db->sql_freeresult($result);
 
 				$this->template->assign_vars([
-					'S_PARTICIPATE'					=> ($this->auth->acl_get('f_reply', $data['forum_id']) && $post_id == $data['topic_first_post_id']),
+					'S_PARTICIPATE'					=> $this->user->data['is_registered'] && $this->auth->acl_get('f_reply', $data['forum_id']),
 					'DMZX_PARTICIPATE_STATUS_CLASS'	=> (!$row) ? 'btn-grey' : (($row['active']) ? 'btn-green' : 'btn-red'),
 					'DMZX_PARTICIPATE_TXT' 			=> (!$row) ? $this->language->lang('STATUS_TXT_NOT_PARTICIPATE') : (($row['active']) ? $this->language->lang('STATUS_TXT_PARTICIPATE') : $this->language->lang('STATUS_TXT_CANCEL_PARTICIPATE')),
 					'DMZX_PARTICIPATE_BUTTON_TXT' 	=> (!$row) ? $this->language->lang('STATUS_TITLE_NOT_PARTICIPATE') : (($row['active']) ? $this->language->lang('STATUS_TITLE_PARTICIPATE') : $this->language->lang('STATUS_TITLE_CANCEL_PARTICIPATE')),
-					'DMZX_PARTICIPATE_STATUS_URL' 	=> $this->controller_helper->route('dmzx_participate_controller', ['name' => 'index.html', 't' => $data['topic_id']]),
+					'DMZX_PARTICIPATE_STATUS_URL' 	=> $this->controller_helper->route('dmzx_participate_controller', ['t' => $data['topic_id'], 'hash' => generate_link_hash('participate')]),
 					'DMZX_PARTICIPATE_INFO_URL' 	=> '<i class="fa fa-info-circle" title="' . $this->language->lang('PARTICIPANTS') . '"></i> ',
 				]);
 
-				$sql = 'SELECT u.username, u.user_colour, d.user_id, d.active
-						FROM ' . $this->tables['participate'] . ' AS d
+				$sql = 'SELECT u.user_id, u.username, u.user_colour, d.active
+						FROM ' . $this->tables . ' AS d
 						LEFT JOIN ' . USERS_TABLE . ' AS u ON (d.user_id = u.user_id)
 						WHERE d.topic_id = ' . (int) $data['topic_id'] . '
 						ORDER BY d.active DESC, d.post_time ASC';
@@ -114,27 +103,14 @@ class listener implements EventSubscriberInterface
 				while ($row = $this->db->sql_fetchrow($result))
 				{
 					$this->template->assign_block_vars('participants', [
-						'USERNAME' 		=> $row['username'],
-						'USERCOLOUR' 	=> $row['user_colour'],
-						'USERID' 		=> $row['user_id'],
-						'CLASS' 		=> ($row['active']) ? 'btn-black' : 'btn-grey strikethrough',
+						'USERNAME'	=> get_username_string('full', $row['user_id'], $row['username'], $row['user_colour']),
+						'CLASS'		=> ($row['active']) ? 'btn-black' : 'btn-grey strikethrough',
 					]);
 				}
 				$this->db->sql_freeresult($result);
 			}
 			$this->assign_authors();
 		}
-	}
-
-	private function is_forum_included($forum_id)
-	{
-		$data = $this->config_text->get_array([
-			'participate_forum_ids',
-		]);
-
-		$forums_included = preg_split("/[\s,]+/", $data['participate_forum_ids']);
-
-		return in_array($forum_id, $forums_included);
 	}
 
 	protected function assign_authors()
